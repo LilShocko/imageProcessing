@@ -42,7 +42,7 @@ private:
     string width;
     string height;
     vector<vector<uint8_t>> matrix;
-    
+
 public:
     Filter(string s1, string s2) {
         //file stuff first
@@ -62,9 +62,9 @@ public:
         size_t num_rows = std::stoi(height);
         size_t num_cols = std::stoi(width);
 
-        
+
         matrix.resize(num_rows, std::vector<uint8_t>(num_cols, 0));
-        
+
     }
     ~Filter() {
         image.close();
@@ -84,7 +84,7 @@ public:
         }
     }
     void GrayFilterDefault() {
-        
+
         int r = 0, g = 0, b = 0;
         uint8_t gray = 0;
         size_t ROWS = matrix.size();
@@ -105,11 +105,11 @@ public:
         int sum = 0;
         for (int a = -1; a < 2; a++) {
             for (int b = -1; b < 2; b++) {
-                sum += matrix[i+a][j+b]*Gauss[1+a][1+b];
+                sum += matrix[i + a][j + b] * Gauss[1 + a][1 + b];
             }
         }
 
-        return sum/16;
+        return sum / 16;
     }
     int convolveSibel(int i, int j) {
         int sum1 = 0;
@@ -135,10 +135,10 @@ public:
         size_t ROWS = matrix.size();
         size_t COLS = matrix[0].size();
 
-        
-        for (int i = 1; i < ROWS-1; i++) {
-            for (int j = 1; j < COLS-1; j++) {
-                tmp[i][j] = convolveGaus(i,j);
+
+        for (int i = 1; i < ROWS - 1; i++) {
+            for (int j = 1; j < COLS - 1; j++) {
+                tmp[i][j] = convolveGaus(i, j);
             }
         }
         //for (int i = 0; i < ROWS; i ++) {
@@ -151,7 +151,7 @@ public:
     void SobelFilter() {
         Timer timer;
 
-       GaussFilter();
+        GaussFilter();
         vector<vector<uint8_t>> tmp = matrix;
         size_t ROWS = matrix.size();
         size_t COLS = matrix[0].size();
@@ -232,7 +232,7 @@ public:
             }
         }
         //matrix[100][100] += 2;
-        //cout << static_cast<int> (matrix[100][100]);
+        //cout << static_cast<int> (matrix[100][100])
     }
 
     int convolveGaus(int i, int j, vector<vector<uint8_t>>& temp) {
@@ -244,8 +244,10 @@ public:
         }
         return sum / 16;
     }
-    void convolveGausrows(vector<vector<uint8_t>>& temp,int threadID, int numThreads, size_t ROWS, size_t COLS) {
-        for (int i = threadID; i < ROWS; i=i+numThreads) {
+
+    void convolveGausrows(vector<vector<uint8_t>>& temp, int threadID, int numThreads, size_t ROWS, size_t COLS) {
+        for (int i = threadID; i < ROWS; i = i + numThreads) {
+
             for (int j = 0; j < COLS; j++) {
                 if (i > 0 && i < ROWS - 1 && j > 0 && j < COLS - 1) {
                     matrix[i][j] = convolveGaus(i, j, temp);
@@ -276,7 +278,8 @@ public:
         for (int i = threadID; i < ROWS; i = i + numThreads) {
             for (int j = 0; j < COLS; j++) {
                 if (i > 0 && i < ROWS - 1 && j > 0 && j < COLS - 1) {
-                    matrix[i][j] = convolveSobel(i, j,temp);
+                    matrix[i][j] = convolveSobel(i, j, temp);
+
                 }
             }
         }
@@ -295,7 +298,7 @@ public:
         int numThreads = (hardwareThreads != 0) ? hardwareThreads : 2;
 
         for (int i = 0; i < numThreads; i++) {
-            threads.push_back(std::thread(&FilterThreads::convolveGausrows,this,ref(temp), i, numThreads, ROWS, COLS));
+            threads.push_back(std::thread(&FilterThreads::convolveGausrows, this, ref(temp), i, numThreads, ROWS, COLS));
         }
         for (std::thread& t : threads) {
             t.join();
@@ -320,14 +323,14 @@ public:
         int numThreads = (hardwareThreads != 0) ? hardwareThreads : 2;
 
         for (int i = 0; i < numThreads; i++) {
-            threads.push_back(std::thread(&FilterThreads::convolveSobelrows, this,ref(temp), i, numThreads, ROWS, COLS));
-            
+            threads.push_back(std::thread(&FilterThreads::convolveSobelrows, this, ref(temp), i, numThreads, ROWS, COLS));
+
         }
         for (std::thread& t : threads) {
             t.join();
         }
 
-        
+
 
         for (int i = 0; i < ROWS; i++) {
             for (int j = 0; j < COLS; j++) {
@@ -345,7 +348,7 @@ public:
 
 
 int main() {
-    //gray scale into
+    //gray scale intoo
     //gaussian into
     //sobel (x and y)
 
