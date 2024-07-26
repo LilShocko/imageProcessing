@@ -244,8 +244,10 @@ public:
         }
         return sum / 16;
     }
+
     void convolveGausrows(vector<vector<uint8_t>>& temp, int threadID, int numThreads, size_t ROWS, size_t COLS) {
         for (int i = threadID; i < ROWS; i = i + numThreads) {
+
             for (int j = 0; j < COLS; j++) {
                 if (i > 0 && i < ROWS - 1 && j > 0 && j < COLS - 1) {
                     matrix[i][j] = convolveGaus(i, j, temp);
@@ -277,6 +279,7 @@ public:
             for (int j = 0; j < COLS; j++) {
                 if (i > 0 && i < ROWS - 1 && j > 0 && j < COLS - 1) {
                     matrix[i][j] = convolveSobel(i, j, temp);
+
                 }
             }
         }
