@@ -345,7 +345,7 @@ public:
 
 
 int main() {
-    //gray scale into
+    //gray scale intoo
     //gaussian into
     //sobel (x and y)
 
