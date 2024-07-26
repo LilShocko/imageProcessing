@@ -98,7 +98,6 @@ public:
                 }
             }
         }
-        //cout << static_cast<int> (matrix[100][100])<<endl;
         //matrix[100][100] += 2;
         //cout << static_cast<int> (matrix[100][100]);
     }
