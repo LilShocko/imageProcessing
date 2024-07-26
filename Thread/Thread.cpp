@@ -232,7 +232,7 @@ public:
             }
         }
         //matrix[100][100] += 2;
-        //cout << static_cast<int> (matrix[100][100]);
+        //cout << static_cast<int> (matrix[100][100])
     }
 
     int convolveGaus(int i, int j, vector<vector<uint8_t>>& temp) {
