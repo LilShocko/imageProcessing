@@ -234,17 +234,7 @@ public:
         //matrix[100][100] += 2;
         //cout << static_cast<int> (matrix[100][100]);
     }
-    int convolveGaus(int i, int j) {
-        int sum = 0;
-        for (int a = -1; a < 2; a++) {
-            for (int b = -1; b < 2; b++) {
-                sum += matrix[i + a][j + b] * Gauss[1 + a][1 + b];
-            }
-        }
-
-        return sum / 16;
-    }
-    int convolveSibel(int i, int j) {
+    int convolveSobel(int i, int j) {
         int sum1 = 0;
         int sum2 = 0;
         for (int a = -1; a < 2; a++) {
@@ -259,30 +249,53 @@ public:
         sum1 = sqrt(sum1);
         return sum1;
     }
-
-    void convolveGausrows(int threadID, int numThreads, size_t ROWS, size_t COLS) {
-        for (int i = threadID; i < ROWS; i=i+numThreads) {
+    void convolveSobelrows(int threadID, int numThreads, size_t ROWS, size_t COLS) {
+        cout << threadID << endl;
+        for (int i = threadID; i < ROWS; i = i + numThreads) {
             for (int j = 0; j < COLS; j++) {
                 if (i > 0 && i < ROWS - 1 && j > 0 && j < COLS - 1) {
-                    matrix[i][j] = convolveGaus(i, j);
+                    matrix[i][j] = convolveSobel(i, j);
                 }
             }
         }
     }
 
+    int convolveGaus(int i, int j, vector<vector<uint8_t>>& temp) {
+        int sum = 0;
+        for (int a = -1; a < 2; a++) {
+            for (int b = -1; b < 2; b++) {
+                sum += temp[i + a][j + b] * Gauss[1 + a][1 + b];
+            }
+        }
+        return sum / 16;
+    }
+    
+
+    void convolveGausrows(vector<vector<uint8_t>>& temp,int threadID, int numThreads, size_t ROWS, size_t COLS) {
+        for (int i = threadID; i < ROWS; i=i+numThreads) {
+            for (int j = 0; j < COLS; j++) {
+                if (i > 0 && i < ROWS - 1 && j > 0 && j < COLS - 1) {
+                    matrix[i][j] = convolveGaus(i, j, temp);
+                }
+            }
+        }
+    }
+
+
     void GaussFilter() {
-        Timer timer;
         GrayFilterDefault();
         size_t ROWS = matrix.size();
         size_t COLS = matrix[0].size();
 
         vector<std::thread> threads;
 
+        vector < vector<uint8_t>> temp = matrix;
+
         int hardwareThreads = std::thread::hardware_concurrency();
         int numThreads = (hardwareThreads != 0) ? hardwareThreads : 2;
 
         for (int i = 0; i < numThreads; i++) {
-            threads.push_back(std::thread(&FilterThreads::convolveGausrows, this, i, numThreads, ROWS, COLS));
+            threads.push_back(std::thread(&FilterThreads::convolveGausrows,this,ref(temp), i, numThreads, ROWS, COLS));
         }
         for (std::thread& t : threads) {
             t.join();
@@ -292,35 +305,34 @@ public:
                 newImage << static_cast<int>(matrix[i][j]) << " " << static_cast<int>(matrix[i][j]) << " " << static_cast<int>(matrix[i][j]) << endl;
             }
         }
-
+        matrix = temp;
     }
     void SobelFilter() {
         Timer timer;
-
         GaussFilter();
-        vector<vector<uint8_t>> tmp = matrix;
+
         size_t ROWS = matrix.size();
         size_t COLS = matrix[0].size();
 
-        int maxValue = 0;
-        int minValue = 0;
+        vector<std::thread> threads;
 
-        for (int i = 1; i < ROWS - 1; i++) {
-            for (int j = 1; j < COLS - 1; j++) {
-                tmp[i][j] = convolveSibel(i, j);
-                if (tmp[i][j] > maxValue)maxValue = tmp[i][j];
-                if (tmp[i][j] < minValue)minValue = tmp[i][j];
-            }
+        int hardwareThreads = std::thread::hardware_concurrency();
+        int numThreads = (hardwareThreads != 0) ? hardwareThreads : 2;
+
+        for (int i = 0; i < numThreads; i++) {
+            threads.push_back(std::thread(&FilterThreads::convolveSobelrows, this, i, numThreads, ROWS, COLS));
+            
         }
-        cout << endl << maxValue << " " << minValue;
+        for (std::thread& t : threads) {
+            t.join();
+        }
+
+        
 
         for (int i = 0; i < ROWS; i++) {
             for (int j = 0; j < COLS; j++) {
-                if (i == 0 || j == 0 || i == ROWS - 1 || j == COLS - 1) {
-                    tmp[i][j] = 0;
-                }
-                tmp[i][j] *= 5;
-                newImage << static_cast<int>(tmp[i][j]) << " " << static_cast<int>(tmp[i][j]) << " " << static_cast<int>(tmp[i][j]) << endl;
+                //matrix[i][j] *= 5;
+                newImage << static_cast<int>(matrix[i][j]) << " " << static_cast<int>(matrix[i][j]) << " " << static_cast<int>(matrix[i][j]) << endl;
             }
         }
     }
@@ -338,7 +350,7 @@ int main() {
     //Filter f1("lakeppm.ppm", "lakesobel.ppm");
     //f1.SobelFilter();
 
-    FilterThreads f1("landscape.ppm", "landscapegauss.ppm");
+    FilterThreads f1("landscape.ppm", "landscapegass.ppm");
     f1.GaussFilter();
 
 
